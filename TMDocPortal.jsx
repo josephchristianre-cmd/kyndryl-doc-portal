@@ -429,6 +429,25 @@ const Header=({isDesktop,step,totalSteps,user,showUser})=>(
   </header>
 );
 
+// ─── Shell — OUTSIDE main component so it never remounts on state change ────────
+const Shell = ({ children, showUser=false, wide=false, isDesktop, user, submitting, uploadPct }) => (
+  <div style={{minHeight:"100vh",background:K.black,color:K.textPri,fontFamily:"'IBM Plex Sans',sans-serif"}}>
+    <GlobalStyle/>
+    {submitting&&(
+      <div style={{position:"fixed",top:0,left:0,right:0,height:3,zIndex:300,background:K.surfaceUp}}>
+        <div style={{height:"100%",background:K.red,width:`${uploadPct}%`,transition:"width 0.2s",boxShadow:`0 0 8px ${K.red}`}}/>
+      </div>
+    )}
+    <Header isDesktop={isDesktop} user={user} showUser={showUser}/>
+    <main style={{maxWidth:wide?1100:520,margin:"0 auto",padding:"clamp(28px,5vw,56px) clamp(14px,4vw,40px) 80px"}}>
+      {children}
+    </main>
+    <footer style={{borderTop:`1px solid ${K.border}`,padding:"16px 24px",textAlign:"center",fontSize:11,color:K.textMute,fontFamily:"'IBM Plex Mono',monospace"}}>
+      © {new Date().getFullYear()} Kyndryl, Inc. · All rights reserved · Confidential
+    </footer>
+  </div>
+);
+
 // ─── Main App ─────────────────────────────────────────────────────────────────
 export default function KyndrylDocPortal(){
   const isDesktop=useIsDesktop();
@@ -544,28 +563,11 @@ export default function KyndrylDocPortal(){
   const uploadedCount=Object.keys(files).length;
   const allDone=uploadedCount===DOCS.length;
 
-  // ─── Shared wrapper ─────────────────────────────────────────────────────────
-  const Shell=({children,showUser=false,wide=false})=>(
-    <div style={{minHeight:"100vh",background:K.black,color:K.textPri,fontFamily:"'IBM Plex Sans',sans-serif"}}>
-      <GlobalStyle/>
-      {submitting&&(
-        <div style={{position:"fixed",top:0,left:0,right:0,height:3,zIndex:300,background:K.surfaceUp}}>
-          <div style={{height:"100%",background:K.red,width:`${uploadPct}%`,transition:"width 0.2s",boxShadow:`0 0 8px ${K.red}`}}/>
-        </div>
-      )}
-      <Header isDesktop={isDesktop} user={user} showUser={showUser}/>
-      <main style={{maxWidth:wide?1100:520,margin:"0 auto",padding:"clamp(28px,5vw,56px) clamp(14px,4vw,40px) 80px"}}>
-        {children}
-      </main>
-      <footer style={{borderTop:`1px solid ${K.border}`,padding:"16px 24px",textAlign:"center",fontSize:11,color:K.textMute,fontFamily:"'IBM Plex Mono',monospace"}}>
-        © {new Date().getFullYear()} Kyndryl, Inc. · All rights reserved · Confidential
-      </footer>
-    </div>
-  );
+  // Shell defined outside — passed as component with props
 
   // ════════════════ AUTH SCREEN ════════════════
   if(screen==="auth") return(
-    <Shell>
+    <Shell isDesktop={isDesktop} user={user} submitting={submitting} uploadPct={uploadPct}>
       <div className="fu">
         {/* Hero */}
         <div style={{marginBottom:36,textAlign:"center"}}>
@@ -629,7 +631,7 @@ export default function KyndrylDocPortal(){
 
   // ════════════════ OTP SCREEN ════════════════
   if(screen==="otp") return(
-    <Shell>
+    <Shell isDesktop={isDesktop} user={user} submitting={submitting} uploadPct={uploadPct}>
       <div className="fu" style={{textAlign:"center"}}>
         <div style={{width:60,height:60,borderRadius:12,margin:"0 auto 18px",background:`${K.red}15`,border:`1px solid ${K.red}33`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:26}}>📧</div>
         <h1 style={{fontSize:"clamp(20px,4vw,26px)",fontWeight:700,marginBottom:8,letterSpacing:"-0.3px"}}>Verify your email</h1>
@@ -673,7 +675,7 @@ export default function KyndrylDocPortal(){
 
   // ════════════════ UPLOAD SCREEN ════════════════
   if(screen==="upload") return(
-    <Shell showUser wide>
+    <Shell isDesktop={isDesktop} user={user} submitting={submitting} uploadPct={uploadPct} showUser wide>
       <div className="fu">
         {/* Page header */}
         <div style={{marginBottom:28}}>
@@ -783,7 +785,7 @@ export default function KyndrylDocPortal(){
   if(screen==="success") return(
     <>
       {showConfetti&&<Confetti/>}
-      <Shell>
+      <Shell isDesktop={isDesktop} user={user} submitting={submitting} uploadPct={uploadPct}>
         <div className="fu" style={{textAlign:"center"}}>
           <div style={{
             width:88,height:88,borderRadius:"50%",margin:"0 auto 22px",
